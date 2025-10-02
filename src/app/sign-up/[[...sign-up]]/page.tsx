@@ -10,11 +10,15 @@ export default function SignUpPage() {
             card: "bg-card border border-border",
             headerTitle: "text-foreground",
             headerSubtitle: "text-muted-foreground",
-            socialButtonsBlockButton: "border border-input hover:bg-accent",
+            socialButtonsBlockButton: "border border-input hover:bg-accent hover:text-accent-foreground",
+            socialButtonsBlockButtonText: "text-foreground",
             formFieldInput: "bg-background border-input",
             footerActionLink: "text-primary hover:text-primary/90",
           },
         }}
+        routing="path"
+        path="/sign-up"
+        signInUrl="/sign-in"
       />
     </div>
   )
