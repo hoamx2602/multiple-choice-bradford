@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,42 +5,6 @@ generator client {
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
-}
-
-model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  clerkId   String   @unique
-  email     String   @unique
-  firstName String?
-  lastName  String?
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  quizzes   Quiz[]
-}
-
-model Quiz {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  authorId    String   @db.ObjectId
-  author      User     @relation(fields: [authorId], references: [id])
-  questions   Question[]
-}
-
-model Question {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  type           QuestionType
-  question       QuestionContent
-  answers        Json
-  correctAnswers Json
-  meta           Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  quizId         String   @db.ObjectId
-  quiz           Quiz     @relation(fields: [quizId], references: [id])
 }
 
 enum QuestionType {
@@ -56,7 +17,94 @@ enum QuestionType {
   fallback
 }
 
-type QuestionContent {
-  text String
-  html String?
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations: User creates or owns quizzes
+  quizzes   Quiz[]
+  // Back-relation: User's quiz attempts
+  attempts  QuizAttempt[]
+
+  @@map("users")
+}
+
+model Question {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  uniqueId      String       @unique  // ID từ extension
+  hash          String       @unique  // MD5 của question để check duplicate
+  type          QuestionType // Sử dụng enum
+  question      String
+  answers       Json     // array<string> hoặc object tùy type
+  correctAnswers Json    // object tùy type hoặc null
+  createdBy     String?  // Clerk userId (optional, ai tạo câu hỏi)
+  metadata      Json     // { timestamp, edited_timestamp, frame, source_url }
+
+  // Relations: Question thuộc về quizzes, và có attempts
+  quizQuestions QuizQuestion[]  // Intermediate table nếu many-to-many
+  attempts      QuizAttempt[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("questions")
+}
+
+model Quiz {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String   // Tên quiz
+  description String?  // Mô tả
+  userId      String   // Clerk userId (owner)
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
+  questions   QuizQuestion[]  // Many-to-many với Question
+  attempts    QuizAttempt[]   // Attempts cho quiz này
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("quizzes")
+}
+
+// Intermediate table cho many-to-many Quiz <-> Question
+model QuizQuestion {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  quizId     String @db.ObjectId
+  questionId String @db.ObjectId
+  order      Int?  // Thứ tự câu hỏi trong quiz
+
+  // Relations
+  quiz       Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question   Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, questionId])
+  @@map("quiz_questions")
+}
+
+model QuizAttempt {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   // Clerk userId (authenticated)
+  quizId        String?  @db.ObjectId  // Optional: Nếu attempt cho toàn quiz
+  questionId    String   @db.ObjectId  // Reference Question.id
+  userAnswers   Json     // Input của user (tương tự correctAnswers)
+  score         Float?   // Tự động tính: 1.0 nếu đúng, 0.0 nếu sai (hoặc %)
+  completedAt   DateTime?
+
+  // Relations
+  user          User?    @relation(fields: [userId], references: [clerkId])  // Link to User via clerkId
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  quiz          Quiz?    @relation(fields: [quizId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, questionId])  // User chỉ attempt 1 lần/question (có thể chỉnh)
+  @@map("quiz_attempts")
 }
