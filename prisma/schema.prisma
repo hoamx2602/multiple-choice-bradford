@@ -15,6 +15,7 @@ enum QuestionType {
   matching_question
   hotspot_question
   fallback
+  fill_in_the_blank
 }
 
 model User {

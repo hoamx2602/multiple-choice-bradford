@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
+import { QuestionType } from '@prisma/client'
 
 type CreateQuestionBody = {
-  type: 'multiple_choice' | 'multiple_response' | 'numerical_question' | 'ordering_question' | 'matching_question' | 'hotspot_question' | 'fallback'
+  type: QuestionType
   question: string
   answers: unknown
   correctAnswers: unknown
@@ -35,6 +36,7 @@ export async function POST(req: Request) {
       'matching_question',
       'hotspot_question',
       'fallback',
+      'fill_in_the_blank',
     ])
     if (!allowedTypes.has(body.type)) {
       return NextResponse.json({ error: 'unsupported question type' }, { status: 400 })
