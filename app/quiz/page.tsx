@@ -5,34 +5,68 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { AuthSignInButton } from "@/components/auth/sign-in-button"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
 
-// Mock data - trong thực tế sẽ lấy từ database
-const mockQuizzes = [
-  {
-    id: "1",
-    title: "Kiến thức JavaScript cơ bản",
-    description: "Test kiến thức JavaScript của bạn với 10 câu hỏi",
-    questionCount: 10,
-    createdAt: "2024-01-15"
-  },
-  {
-    id: "2", 
-    title: "React Hooks và State Management",
-    description: "Câu hỏi về React Hooks, useState, useEffect và các khái niệm khác",
-    questionCount: 15,
-    createdAt: "2024-01-20"
-  },
-  {
-    id: "3",
-    title: "Next.js App Router",
-    description: "Kiểm tra hiểu biết về Next.js 13+ App Router",
-    questionCount: 8,
-    createdAt: "2024-01-25"
+interface Module {
+  id: string
+  title: string
+  description: string | null
+  isPublic: boolean
+  createdAt: string
+  _count: {
+    questions: number
   }
-]
+}
+
+interface Question {
+  id: string
+  uniqueId: string
+  type: string
+  question: string
+  answers: any
+  correctAnswers: any
+  createdAt: string
+}
 
 export default function QuizListPage() {
   const { isSignedIn, isLoaded } = useUser()
+  const searchParams = useSearchParams()
+  const moduleId = searchParams.get('module')
+  
+  const [module, setModule] = useState<Module | null>(null)
+  const [questions, setQuestions] = useState<Question[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (moduleId) {
+      fetchModuleQuiz(moduleId)
+    }
+  }, [moduleId])
+
+  const fetchModuleQuiz = async (id: string) => {
+    try {
+      setLoading(true)
+      
+      // Fetch module info
+      const moduleResponse = await fetch(`/api/modules/${id}`)
+      if (moduleResponse.ok) {
+        const moduleData = await moduleResponse.json()
+        setModule(moduleData)
+      }
+
+      // Fetch questions
+      const questionsResponse = await fetch(`/api/questions?moduleId=${id}`)
+      if (questionsResponse.ok) {
+        const questionsData = await questionsResponse.json()
+        setQuestions(questionsData.items || [])
+      }
+    } catch (error) {
+      console.error('Error fetching module quiz:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (!isLoaded) {
     return (
@@ -58,6 +92,124 @@ export default function QuizListPage() {
     )
   }
 
+  // If moduleId is provided, show module-specific quiz
+  if (moduleId) {
+    if (loading) {
+      return (
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </main>
+      )
+    }
+
+    if (!module || questions.length === 0) {
+      return (
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-3xl font-bold mb-4">Không tìm thấy quiz</h1>
+            <p className="text-muted-foreground mb-8">
+              Module này chưa có câu hỏi nào để làm quiz.
+            </p>
+            <Button asChild>
+              <Link href="/modules">Quay lại danh sách modules</Link>
+            </Button>
+          </div>
+        </main>
+      )
+    }
+
+    return (
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Module Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <Button variant="ghost" asChild>
+                <Link href={`/modules/${module.id}`}>← Quay lại module</Link>
+              </Button>
+            </div>
+            <h1 className="text-3xl font-bold mb-2">{module.title}</h1>
+            <p className="text-muted-foreground text-lg">
+              {module.description || 'Làm quiz để kiểm tra kiến thức của bạn'}
+            </p>
+            <div className="mt-4 text-sm text-muted-foreground">
+              {questions.length} câu hỏi • Tạo lúc {new Date(module.createdAt).toLocaleDateString('vi-VN')}
+            </div>
+          </div>
+
+          {/* Quiz Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle>Quiz cơ bản</CardTitle>
+                <CardDescription>
+                  Làm tất cả {questions.length} câu hỏi theo thứ tự
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    • Không giới hạn thời gian<br/>
+                    • Có thể quay lại câu trước<br/>
+                    • Hiển thị kết quả ngay
+                  </div>
+                  <Button asChild className="w-full">
+                    <Link href={`/modules/${module.id}/quiz`}>Bắt đầu làm</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle>Quiz có thời gian</CardTitle>
+                <CardDescription>
+                  Làm bài với giới hạn thời gian
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    • 30 phút làm bài<br/>
+                    • Tự động nộp khi hết giờ<br/>
+                    • Áp lực thời gian
+                  </div>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={`/modules/${module.id}/quiz?timed=true`}>Bắt đầu có thời gian</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle>Xem trước câu hỏi</CardTitle>
+                <CardDescription>
+                  Xem tất cả câu hỏi trước khi làm
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    • Xem tất cả câu hỏi<br/>
+                    • Không cần trả lời<br/>
+                    • Chuẩn bị trước khi thi
+                  </div>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={`/modules/${module.id}`}>Xem trước</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // Default quiz list (when no moduleId)
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
@@ -73,46 +225,15 @@ export default function QuizListPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockQuizzes.map((quiz) => (
-            <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="line-clamp-2">{quiz.title}</CardTitle>
-                <CardDescription className="line-clamp-3">
-                  {quiz.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>{quiz.questionCount} câu hỏi</span>
-                    <span>{quiz.createdAt}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button asChild className="flex-1">
-                      <Link href={`/quiz/${quiz.id}`}>Bắt đầu</Link>
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Xem trước
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium mb-2">Chọn module để làm quiz</h3>
+          <p className="text-muted-foreground mb-4">
+            Để làm quiz, hãy chọn một module từ danh sách modules
+          </p>
+          <Button asChild>
+            <Link href="/modules">Xem danh sách modules</Link>
+          </Button>
         </div>
-
-        {mockQuizzes.length === 0 && (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">Chưa có quiz nào</h3>
-            <p className="text-muted-foreground mb-4">
-              Hãy tạo quiz đầu tiên của bạn
-            </p>
-            <Button asChild>
-              <Link href="/quiz/create">Tạo Quiz mới</Link>
-            </Button>
-          </div>
-        )}
       </div>
     </main>
   )

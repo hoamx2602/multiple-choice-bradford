@@ -18,6 +18,12 @@ export function Header() {
         
         <nav className="hidden md:flex items-center space-x-6">
           <Link 
+            href="/modules" 
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Modules
+          </Link>
+          <Link 
             href="/quiz" 
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >

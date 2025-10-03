@@ -96,12 +96,14 @@ export async function GET(req: Request) {
       | 'fallback'
       | null
     const q = searchParams.get('q') || undefined
+    const moduleId = searchParams.get('moduleId') || undefined
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100)
     const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1)
 
     const where: any = {}
     if (type) where.type = type
     if (q) where.question = { contains: q }
+    if (moduleId) where.moduleId = moduleId
 
     const [items, total] = await Promise.all([
       prisma.question.findMany({
@@ -114,6 +116,8 @@ export async function GET(req: Request) {
           uniqueId: true,
           type: true,
           question: true,
+          answers: true,
+          correctAnswers: true,
           createdAt: true,
           updatedAt: true,
         },
