@@ -32,8 +32,24 @@ model User {
   quizzes   Quiz[]
   // Back-relation: User's quiz attempts
   attempts  QuizAttempt[]
+  // User creates modules
 
   @@map("users")
+}
+
+model Module {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  isPublic    Boolean  @default(true)
+  
+  // Relations
+  questions   Question[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("modules")
 }
 
 model Question {
@@ -45,9 +61,11 @@ model Question {
   answers       Json     // array<string> hoặc object tùy type
   correctAnswers Json    // object tùy type hoặc null
   createdBy     String?  // Clerk userId (optional, ai tạo câu hỏi)
+  moduleId      String?  @db.ObjectId // Link to module
   metadata      Json     // { timestamp, edited_timestamp, frame, source_url }
 
-  // Relations: Question thuộc về quizzes, và có attempts
+  // Relations: Question thuộc về modules, quizzes, và có attempts
+  module        Module?      @relation(fields: [moduleId], references: [id], onDelete: SetNull)
   quizQuestions QuizQuestion[]  // Intermediate table nếu many-to-many
   attempts      QuizAttempt[]
 

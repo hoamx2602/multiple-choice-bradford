@@ -8,6 +8,7 @@ type CreateQuestionBody = {
   question: string
   answers: unknown
   correctAnswers: unknown
+  moduleId?: string
   metadata?: Record<string, unknown>
 }
 
@@ -70,6 +71,7 @@ export async function POST(req: Request) {
         answers: answers as any,
         correctAnswers: correctAnswers as any,
         createdBy: null,
+        moduleId: body.moduleId || null,
         metadata: (body.metadata ?? {}) as any,
       },
     })
