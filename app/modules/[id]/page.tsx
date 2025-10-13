@@ -5,6 +5,7 @@ import { useParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Image, ImageOff } from "lucide-react"
 import Link from "next/link"
 
 interface Module {
@@ -26,6 +27,7 @@ interface Question {
   question: string
   answers: any
   correctAnswers: any
+  imageUrl?: string | null
   createdAt: string
 }
 
@@ -39,6 +41,7 @@ export default function ModuleDetailPage() {
   const [totalQuestions, setTotalQuestions] = useState(0)
   const [loading, setLoading] = useState(true)
   const [searchLoading, setSearchLoading] = useState(false)
+  const [showImages, setShowImages] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     if (params.id) {
@@ -109,6 +112,27 @@ export default function ModuleDetailPage() {
     if (params.id) {
       fetchQuestions(params.id as string, page, searchQuery)
     }
+  }
+
+  const toggleImage = (questionId: string) => {
+    setShowImages(prev => ({
+      ...prev,
+      [questionId]: !prev[questionId]
+    }))
+  }
+
+  const getQuestionTypeAbbreviation = (type: string) => {
+    const typeMap: Record<string, string> = {
+      'multiple_choice': 'MC',
+      'multiple_response': 'MR', 
+      'numerical_question': 'NQ',
+      'ordering_question': 'OQ',
+      'matching_question': 'MQ',
+      'hotspot_question': 'HQ',
+      'fill_in_the_blank': 'FB',
+      'fallback': 'FB'
+    }
+    return typeMap[type] || type.toUpperCase()
   }
 
   const renderAnswers = (question: Question) => {
@@ -235,7 +259,10 @@ export default function ModuleDetailPage() {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-3">
         {/* Back button */}
         <div className="mb-6">
           <Button variant="ghost" asChild>
@@ -330,13 +357,45 @@ export default function ModuleDetailPage() {
                         <CardTitle className="text-lg">
                           Câu {index + 1}: {question.question}
                         </CardTitle>
-                        <span className="ml-4 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                          {question.type.replace('_', ' ')}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                            {getQuestionTypeAbbreviation(question.type)}
+                          </span>
+                          {question.imageUrl && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggleImage(question.id)}
+                              className={`p-2 ${
+                                showImages[question.id]
+                                  ? 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200'
+                                  : 'hover:bg-gray-100'
+                              }`}
+                              title={showImages[question.id] ? 'Ẩn ảnh' : 'Hiển thị ảnh'}
+                            >
+                              {showImages[question.id] ? <ImageOff className="h-4 w-4" /> : <Image className="h-4 w-4" />}
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
+                        {/* Show image if toggle is on and imageUrl exists */}
+                        {showImages[question.id] && question.imageUrl && (
+                          <div className="mb-4">
+                            <img 
+                              src={question.imageUrl} 
+                              alt="Question image" 
+                              className="max-w-full h-auto rounded-lg border shadow-sm"
+                              onError={(e) => {
+                                console.error('Failed to load image:', question.imageUrl)
+                                e.currentTarget.style.display = 'none'
+                              }}
+                            />
+                          </div>
+                        )}
+                        
                         {/* Answers */}
                         <div>
                           <h4 className="font-medium text-sm mb-2">Các lựa chọn:</h4>
@@ -411,6 +470,51 @@ export default function ModuleDetailPage() {
                 trong tổng số {totalQuestions} câu hỏi
               </div>
             )}
+          </div>
+        </div>
+          </div>
+          
+          {/* Legend Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Loại câu hỏi</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">MC</span>
+                      <span>Multiple Choice</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">MR</span>
+                      <span>Multiple Response</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">NQ</span>
+                      <span>Numerical Question</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">OQ</span>
+                      <span>Ordering Question</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">MQ</span>
+                      <span>Matching Question</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">HQ</span>
+                      <span>Hotspot Question</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">FB</span>
+                      <span>Fill in the Blank</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>

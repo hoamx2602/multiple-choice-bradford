@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DragDropFill } from "@/components/ui/drag-drop-fill"
 import { MatchingQuestion } from "@/components/ui/matching-question"
 import { OrderQuestion } from "@/components/ui/order-question"
-import { Bookmark } from "lucide-react"
+import { Bookmark, Image, ImageOff } from "lucide-react"
 import Link from "next/link"
 
 interface Question {
@@ -21,6 +21,7 @@ interface Question {
   question: string
   answers: string[] | { premises: string[], responses: string[] }
   correctAnswers: any
+  imageUrl?: string | null
   createdAt: string
 }
 
@@ -54,6 +55,7 @@ export default function ModuleQuizPage() {
   const [showSettings, setShowSettings] = useState(true)
   const [loading, setLoading] = useState(true)
   const [submitted, setSubmitted] = useState(false)
+  const [showImage, setShowImage] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -126,17 +128,20 @@ export default function ModuleQuizPage() {
   const nextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
+      setShowImage(false) // Reset image visibility when changing questions
     }
   }
 
   const prevQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1)
+      setShowImage(false) // Reset image visibility when changing questions
     }
   }
 
   const goToQuestion = (index: number) => {
     setCurrentQuestionIndex(index)
+    setShowImage(false) // Reset image visibility when changing questions
   }
 
   const handleSubmit = () => {
@@ -148,6 +153,20 @@ export default function ModuleQuizPage() {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const getQuestionTypeAbbreviation = (type: string) => {
+    const typeMap: Record<string, string> = {
+      'multiple_choice': 'MC',
+      'multiple_response': 'MR', 
+      'numerical_question': 'NQ',
+      'ordering_question': 'OQ',
+      'matching_question': 'MQ',
+      'hotspot_question': 'HQ',
+      'fill_in_the_blank': 'FB',
+      'fallback': 'FB'
+    }
+    return typeMap[type] || type.toUpperCase()
   }
 
   const renderQuestion = (question: Question) => {
@@ -480,7 +499,7 @@ export default function ModuleQuizPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Question Navigation */}
           <div className="lg:col-span-1">
             <Card>
@@ -535,8 +554,23 @@ export default function ModuleQuizPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full whitespace-nowrap">
-                      {currentQuestion.type.replace('_', ' ')}
+                      {getQuestionTypeAbbreviation(currentQuestion.type)}
                     </span>
+                    {currentQuestion.imageUrl && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowImage(!showImage)}
+                        className={`p-2 ${
+                          showImage 
+                            ? 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200' 
+                            : 'hover:bg-gray-100'
+                        }`}
+                        title={showImage ? 'Ẩn ảnh' : 'Hiển thị ảnh'}
+                      >
+                        {showImage ? <ImageOff className="h-4 w-4" /> : <Image className="h-4 w-4" />}
+                      </Button>
+                    )}
                     {quizSettings.allowMarking && (
                       <Button
                         variant="outline"
@@ -561,6 +595,21 @@ export default function ModuleQuizPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+                  {/* Show image if toggle is on and imageUrl exists */}
+                  {showImage && currentQuestion.imageUrl && (
+                    <div className="mb-4">
+                      <img 
+                        src={currentQuestion.imageUrl} 
+                        alt="Question image" 
+                        className="max-w-full h-auto rounded-lg border shadow-sm"
+                        onError={(e) => {
+                          console.error('Failed to load image:', currentQuestion.imageUrl)
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      />
+                    </div>
+                  )}
+                  
                   {renderQuestion(currentQuestion)}
                   
                   {quizSettings.showAnswers && currentQuestion.correctAnswers && (
@@ -603,6 +652,49 @@ export default function ModuleQuizPage() {
                   </Button>
                 )}
               </div>
+            </div>
+          </div>
+          
+          {/* Legend Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Loại câu hỏi</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">MC</span>
+                      <span>Multiple Choice</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">MR</span>
+                      <span>Multiple Response</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">NQ</span>
+                      <span>Numerical Question</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">OQ</span>
+                      <span>Ordering Question</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">MQ</span>
+                      <span>Matching Question</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">HQ</span>
+                      <span>Hotspot Question</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">FB</span>
+                      <span>Fill in the Blank</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

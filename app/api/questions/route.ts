@@ -118,6 +118,7 @@ export async function GET(req: Request) {
           question: true,
           answers: true,
           correctAnswers: true,
+          imageUrl: true,
           createdAt: true,
           updatedAt: true,
         },

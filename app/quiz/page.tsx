@@ -26,6 +26,7 @@ interface Question {
   question: string
   answers: any
   correctAnswers: any
+  imageUrl?: string | null
   createdAt: string
 }
 
