@@ -60,6 +60,7 @@ model Question {
   question      String
   answers       Json     // array<string> hoặc object tùy type
   correctAnswers Json    // object tùy type hoặc null
+  imageUrl      String?  // S3 URL for question image
   createdBy     String?  // Clerk userId (optional, ai tạo câu hỏi)
   moduleId      String?  @db.ObjectId // Link to module
   metadata      Json     // { timestamp, edited_timestamp, frame, source_url }

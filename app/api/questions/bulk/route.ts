@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
         type: question.type,
         answers: question.answers,
         correctAnswers: question.correctAnswers,
+        imageUrl: question.imageUrl || null, // S3 URL for image
         hash,
         uniqueId,
         moduleId,
