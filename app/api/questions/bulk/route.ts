@@ -5,7 +5,7 @@ import crypto from 'crypto'
 // Generate content hash for duplicate detection
 function generateContentHash(question: any): string {
   const questionText = question.question?.trim().toLowerCase()
-  return crypto.createHash('md5').update(questionText).digest('hex')
+  return crypto.createHash('sha256').update(questionText).digest('hex')
 }
 
 // Generate unique ID

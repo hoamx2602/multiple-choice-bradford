@@ -13,8 +13,8 @@ type CreateQuestionBody = {
 }
 
 function generateContentHash(payload: Omit<CreateQuestionBody, 'metadata'>): string {
-  const canonical = JSON.stringify(payload)
-  return crypto.createHash('md5').update(canonical).digest('hex')
+  const questionText = payload.question?.trim().toLowerCase()
+  return crypto.createHash('sha256').update(questionText).digest('hex')
 }
 
 export async function POST(req: Request) {
