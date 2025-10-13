@@ -4,19 +4,8 @@ import crypto from 'crypto'
 
 // Generate content hash for duplicate detection
 function generateContentHash(question: any): string {
-  const content = {
-    question: question.question?.trim().toLowerCase(),
-    answers: Array.isArray(question.answers) 
-      ? question.answers.map((a: any) => a?.toString().trim().toLowerCase()).sort()
-      : question.answers,
-    correctAnswers: Array.isArray(question.correctAnswers)
-      ? question.correctAnswers.map((a: any) => a?.toString().trim().toLowerCase()).sort()
-      : question.correctAnswers,
-    type: question.type?.trim().toLowerCase(),
-    moduleId: question.moduleId
-  }
-  
-  return crypto.createHash('md5').update(JSON.stringify(content)).digest('hex')
+  const questionText = question.question?.trim().toLowerCase()
+  return crypto.createHash('md5').update(questionText).digest('hex')
 }
 
 // Generate unique ID
