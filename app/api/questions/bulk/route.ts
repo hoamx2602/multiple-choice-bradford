@@ -113,16 +113,54 @@ export async function POST(request: NextRequest) {
     // If there are validation errors, we will skip invalid items
     // and proceed with valid ones instead of failing the whole request
 
-    // Note: Duplicate detection is now handled during individual insert
+    // Check for duplicates by hash before inserting to avoid database constraint errors
 
-    // Insert questions one by one to handle duplicates gracefully
-    const createdQuestions = []
-    const failedQuestions = []
+    // Get all hashes from validated questions
+    const questionHashes = validatedQuestions.map(q => q.hash)
+    
+    // Check all hashes at once to find existing questions
+    const existingQuestions = await prisma.question.findMany({
+      where: { 
+        hash: { 
+          in: questionHashes 
+        } 
+      },
+      select: { hash: true }
+    })
+    
+    // Create a set of existing hashes for fast lookup
+    const existingHashes = new Set(existingQuestions.map(q => q.hash))
+
+    // Separate questions into new and duplicate
+    const newQuestions = []
+    const duplicateQuestions = []
 
     for (const question of validatedQuestions) {
+      if (existingHashes.has(question.hash)) {
+        duplicateQuestions.push({
+          question: question.question,
+          uniqueId: question.uniqueId,
+          reason: 'Duplicate question (hash already exists)'
+        })
+      } else {
+        newQuestions.push(question)
+      }
+    }
+
+    // Insert all new questions at once
+    const createdQuestions = []
+    const failedQuestions = [...duplicateQuestions]
+
+    if (newQuestions.length > 0) {
       try {
-        const created = await prisma.question.create({
-          data: question,
+        await prisma.question.createMany({
+          data: newQuestions
+        })
+        
+        // Get the created questions to return their details
+        const createdHashes = newQuestions.map(q => q.hash)
+        const createdQuestionsDetails = await prisma.question.findMany({
+          where: { hash: { in: createdHashes } },
           select: {
             id: true,
             uniqueId: true,
@@ -132,22 +170,33 @@ export async function POST(request: NextRequest) {
             createdAt: true
           }
         })
-        createdQuestions.push(created)
+        
+        createdQuestions.push(...createdQuestionsDetails)
       } catch (error: any) {
-        console.error('Question creation error:', error)
-        // Check if it's a duplicate error
-        if (error.code === 'P2002' && error.meta?.target?.includes('hash')) {
-          failedQuestions.push({
-            question: question.question,
-            uniqueId: question.uniqueId,
-            reason: 'Duplicate question'
-          })
-        } else {
-          failedQuestions.push({
-            question: question.question,
-            uniqueId: question.uniqueId,
-            reason: `Database error: ${error.message || error.code || 'Unknown error'}`
-          })
+        console.error('Bulk questions creation error:', error)
+        // If bulk insert fails, fall back to individual inserts
+        for (const question of newQuestions) {
+          try {
+            const created = await prisma.question.create({
+              data: question,
+              select: {
+                id: true,
+                uniqueId: true,
+                question: true,
+                type: true,
+                moduleId: true,
+                createdAt: true
+              }
+            })
+            createdQuestions.push(created)
+          } catch (individualError: any) {
+            console.error('Individual question creation error:', individualError)
+            failedQuestions.push({
+              question: question.question,
+              uniqueId: question.uniqueId,
+              reason: `Database error: ${individualError.message || individualError.code || 'Unknown error'}`
+            })
+          }
         }
       }
     }
