@@ -109,16 +109,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    if (errors.length > 0) {
-      return NextResponse.json(
-        { 
-          error: 'Validation failed',
-          details: errors,
-          message: `Found ${errors.length} invalid questions`
-        },
-        { status: 400 }
-      )
-    }
+    // If there are validation errors, we will skip invalid items
+    // and proceed with valid ones instead of failing the whole request
 
     // Note: Duplicate detection is now handled during individual insert
 
@@ -159,37 +151,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Return response based on results
-    if (createdQuestions.length === 0) {
-      return NextResponse.json({
-        error: 'No questions were created',
-        failed: failedQuestions,
-        message: 'All questions failed to create'
-      }, { status: 400 })
-    }
+    // Combine validation errors with DB errors as failed items
+    const validationFailed = errors.map((e: any) => ({
+      question: e.question,
+      uniqueId: null,
+      reason: `Validation error: ${e.errors.join(', ')}`
+    }))
 
-    if (failedQuestions.length > 0) {
-      return NextResponse.json({
-        success: true,
-        message: `Successfully created ${createdQuestions.length} questions, ${failedQuestions.length} failed`,
-        data: {
-          created: createdQuestions.length,
-          failed: failedQuestions.length,
-          questions: createdQuestions
-        },
-        warnings: {
-          failedQuestions
-        }
-      }, { status: 207 }) // 207 Multi-Status
-    }
+    const allFailed = [...validationFailed, ...failedQuestions]
 
+    // Always return 201 (created) with partial results and failed items listed
     return NextResponse.json({
       success: true,
-      message: `Successfully created ${createdQuestions.length} questions`,
+      message: `Created ${createdQuestions.length} question(s). ${allFailed.length} item(s) skipped.`,
       data: {
         created: createdQuestions.length,
         questions: createdQuestions
-      }
+      },
+      skipped: allFailed
     }, { status: 201 })
 
   } catch (error) {
