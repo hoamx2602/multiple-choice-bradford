@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Image, ImageOff } from "lucide-react"
 import Link from "next/link"
+import { fillInTheBlankAnswersWithHighlight } from "@/lib/utils"
 
 interface Module {
   id: string
@@ -171,6 +172,7 @@ export default function ModuleDetailPage() {
       case 'fill_in_the_blank':
         return (
           <div className="space-y-2">
+            {/* Hiển thị đáp án dưới dạng danh sách */}
             <div className="text-sm">
               <span className="font-medium">Đáp án: </span>
               {Array.isArray(question.correctAnswers) && question.correctAnswers.map((answer: string, idx: number) => (
@@ -355,7 +357,9 @@ export default function ModuleDetailPage() {
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-lg">
-                          Câu {index + 1}: {question.question}
+                          Câu {index + 1}: {question.type === 'fill_in_the_blank' && Array.isArray(question.correctAnswers)
+                            ? fillInTheBlankAnswersWithHighlight(question.question, question.correctAnswers)
+                            : question.question}
                         </CardTitle>
                         <div className="flex items-center gap-2">
                           <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
