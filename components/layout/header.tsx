@@ -23,18 +23,6 @@ export function Header() {
           >
             Modules
           </Link>
-          <Link 
-            href="/quiz" 
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Quiz
-          </Link>
-          <Link 
-            href="/stats" 
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Thống kê
-          </Link>
         </nav>
 
         <div className="flex items-center space-x-4">

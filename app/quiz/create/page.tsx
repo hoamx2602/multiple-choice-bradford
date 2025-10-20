@@ -85,16 +85,16 @@ export default function CreateQuizPage() {
     e.preventDefault()
     // TODO: Implement save to database
     console.log("Quiz data:", { quizTitle, quizDescription, questions })
-    alert("Quiz đã được lưu thành công!")
+    alert("Quiz saved successfully!")
   }
 
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Tạo Quiz mới</h1>
+          <h1 className="text-3xl font-bold mb-2">Create new Quiz</h1>
           <p className="text-muted-foreground">
-            Tạo bài quiz trắc nghiệm với các câu hỏi và đáp án
+            Create a multiple-choice quiz with questions and answers
           </p>
         </div>
 
@@ -102,29 +102,29 @@ export default function CreateQuizPage() {
           {/* Quiz Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Thông tin Quiz</CardTitle>
+              <CardTitle>Quiz information</CardTitle>
               <CardDescription>
-                Nhập tiêu đề và mô tả cho bài quiz của bạn
+                Enter a title and description for your quiz
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="title">Tiêu đề *</Label>
+                <Label htmlFor="title">Title *</Label>
                 <Input
                   id="title"
                   value={quizTitle}
                   onChange={(e) => setQuizTitle(e.target.value)}
-                  placeholder="Nhập tiêu đề quiz..."
+                  placeholder="Enter quiz title..."
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="description">Mô tả</Label>
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   value={quizDescription}
                   onChange={(e) => setQuizDescription(e.target.value)}
-                  placeholder="Mô tả ngắn về quiz..."
+                  placeholder="Short description about the quiz..."
                   rows={3}
                 />
               </div>
@@ -134,9 +134,9 @@ export default function CreateQuizPage() {
           {/* Questions */}
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-semibold">Câu hỏi</h2>
+              <h2 className="text-2xl font-semibold">Questions</h2>
               <Button type="button" onClick={addQuestion}>
-                Thêm câu hỏi
+                Add question
               </Button>
             </div>
 
@@ -145,7 +145,7 @@ export default function CreateQuizPage() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg">
-                      Câu hỏi {index + 1}
+                      Question {index + 1}
                     </CardTitle>
                     {questions.length > 1 && (
                       <Button
@@ -154,7 +154,7 @@ export default function CreateQuizPage() {
                         size="sm"
                         onClick={() => removeQuestion(question.id)}
                       >
-                        Xóa
+                        Delete
                       </Button>
                     )}
                   </div>
@@ -162,19 +162,19 @@ export default function CreateQuizPage() {
                 <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor={`question-${question.id}`}>
-                      Nội dung câu hỏi *
+                      Question content *
                     </Label>
                     <Textarea
                       id={`question-${question.id}`}
                       value={question.text}
                       onChange={(e) => updateQuestion(question.id, "text", e.target.value)}
-                      placeholder="Nhập nội dung câu hỏi..."
+                      placeholder="Enter question content..."
                       required
                     />
                   </div>
 
                   <div className="space-y-3">
-                    <Label>Các lựa chọn *</Label>
+                    <Label>Options *</Label>
                     {question.options.map((option, optionIndex) => (
                       <div key={optionIndex} className="flex items-center space-x-2">
                         <input
@@ -187,7 +187,7 @@ export default function CreateQuizPage() {
                         <Input
                           value={option}
                           onChange={(e) => updateOption(question.id, optionIndex, e.target.value)}
-                          placeholder={`Lựa chọn ${optionIndex + 1}...`}
+                          placeholder={`Option ${optionIndex + 1}...`}
                           required
                         />
                       </div>
@@ -201,10 +201,10 @@ export default function CreateQuizPage() {
           {/* Actions */}
           <div className="flex justify-end space-x-4">
             <Button type="button" variant="outline" asChild>
-              <Link href="/quiz">Hủy</Link>
+              <Link href="/quiz">Cancel</Link>
             </Button>
             <Button type="submit">
-              Lưu Quiz
+              Save Quiz
             </Button>
           </div>
         </form>

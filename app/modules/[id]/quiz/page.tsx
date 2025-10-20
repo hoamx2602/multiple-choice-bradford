@@ -356,12 +356,12 @@ export default function ModuleQuizPage() {
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Không tìm thấy câu hỏi</h1>
+          <h1 className="text-2xl font-bold mb-4">No questions found</h1>
           <p className="text-muted-foreground mb-4">
-            Module này chưa có câu hỏi nào để làm quiz.
+            This module has no questions available for a quiz.
           </p>
           <Button asChild>
-            <Link href={`/modules/${params.id}`}>Quay lại module</Link>
+            <Link href={`/modules/${params.id}`}>Back to module</Link>
           </Button>
         </div>
       </main>
@@ -374,14 +374,14 @@ export default function ModuleQuizPage() {
         <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle>Thiết lập Quiz</CardTitle>
+              <CardTitle>Quiz Settings</CardTitle>
               <CardDescription>
-                Cấu hình thời gian và tùy chọn cho bài quiz "{module.title}"
+                Configure time and options for quiz "{module.title}"
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="timeLimit">Thời gian làm bài (phút)</Label>
+                <Label htmlFor="timeLimit">Time limit (minutes)</Label>
                 <Input
                   id="timeLimit"
                   type="number"
@@ -391,7 +391,7 @@ export default function ModuleQuizPage() {
                     ...prev,
                     timeLimit: parseInt(e.target.value) || 0
                   }))}
-                  placeholder="0 = không giới hạn thời gian"
+                  placeholder="0 = no time limit"
                 />
               </div>
 
@@ -404,7 +404,7 @@ export default function ModuleQuizPage() {
                     showAnswers: !!checked
                   }))}
                 />
-                <Label htmlFor="showAnswers">Hiển thị đáp án đúng</Label>
+                <Label htmlFor="showAnswers">Show correct answers</Label>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -416,25 +416,25 @@ export default function ModuleQuizPage() {
                     allowMarking: !!checked
                   }))}
                 />
-                <Label htmlFor="allowMarking">Cho phép đánh dấu câu hỏi</Label>
+                <Label htmlFor="allowMarking">Allow marking questions</Label>
               </div>
 
               <div className="bg-muted p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Thông tin quiz:</h4>
+                <h4 className="font-medium mb-2">Quiz info:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Tổng số câu hỏi: {questions.length}</li>
-                  <li>• Thời gian: {quizSettings.timeLimit === 0 ? 'Không giới hạn' : `${quizSettings.timeLimit} phút`}</li>
-                  <li>• Có thể quay lại câu trước</li>
-                  <li>• Có thể đánh dấu câu hỏi để xem lại</li>
+                  <li>• Total questions: {questions.length}</li>
+                  <li>• Time: {quizSettings.timeLimit === 0 ? 'No limit' : `${quizSettings.timeLimit} minutes`}</li>
+                  <li>• Can go back to previous question</li>
+                  <li>• Can mark questions to review</li>
                 </ul>
               </div>
 
               <div className="flex gap-4">
                 <Button onClick={startQuiz} className="flex-1">
-                  Bắt đầu làm bài
+                  Start quiz
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href={`/modules/${params.id}`}>Hủy</Link>
+                  <Link href={`/modules/${params.id}`}>Cancel</Link>
                 </Button>
               </div>
             </CardContent>
@@ -450,21 +450,21 @@ export default function ModuleQuizPage() {
         <div className="max-w-2xl mx-auto text-center">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Hoàn thành!</CardTitle>
+              <CardTitle className="text-2xl">Completed!</CardTitle>
               <CardDescription>
-                Bạn đã nộp bài quiz thành công
+                You have submitted the quiz successfully
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-lg">
-                Đã trả lời: {Object.keys(answers).length}/{questions.length} câu hỏi
+                Answered: {Object.keys(answers).length}/{questions.length} questions
               </div>
               <div className="flex gap-4 justify-center">
                 <Button asChild>
-                  <Link href={`/modules/${params.id}`}>Quay lại module</Link>
+                  <Link href={`/modules/${params.id}`}>Back to module</Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/modules">Xem modules khác</Link>
+                  <Link href="/modules">See other modules</Link>
                 </Button>
               </div>
             </CardContent>
@@ -492,9 +492,9 @@ export default function ModuleQuizPage() {
             )}
           </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>Đã trả lời: {answeredCount}/{questions.length}</span>
+            <span>Answered: {answeredCount}/{questions.length}</span>
             {quizSettings.allowMarking && (
-              <span>Đã đánh dấu: {markedCount}</span>
+              <span>Marked: {markedCount}</span>
             )}
           </div>
         </div>
@@ -504,7 +504,7 @@ export default function ModuleQuizPage() {
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Danh sách câu hỏi</CardTitle>
+                <CardTitle className="text-lg">Question list</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-5 lg:grid-cols-1 gap-2">
@@ -530,10 +530,10 @@ export default function ModuleQuizPage() {
                   ))}
                 </div>
                 <div className="mt-4 text-xs text-muted-foreground">
-                  <div>• Trắng: Chưa làm</div>
-                  <div>• Xám: Đã làm</div>
-                  <div>• Xanh: Đang làm</div>
-                  <div>• Chấm vàng: Đã đánh dấu</div>
+                  <div>• White: Not answered</div>
+                  <div>• Gray: Answered</div>
+                  <div>• Blue: In progress</div>
+                  <div>• Yellow dot: Marked</div>
                 </div>
               </CardContent>
             </Card>
@@ -546,7 +546,7 @@ export default function ModuleQuizPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-xl">
-                      Câu {currentQuestionIndex + 1} / {questions.length}
+                      Question {currentQuestionIndex + 1} / {questions.length}
                     </CardTitle>
                     <CardDescription className="mt-2">
                       {currentQuestion.question}
@@ -566,7 +566,7 @@ export default function ModuleQuizPage() {
                             ? 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200' 
                             : 'hover:bg-gray-100'
                         }`}
-                        title={showImage ? 'Ẩn ảnh' : 'Hiển thị ảnh'}
+                        title={showImage ? 'Hide image' : 'Show image'}
                       >
                         {showImage ? <ImageOff className="h-4 w-4" /> : <Image className="h-4 w-4" />}
                       </Button>
@@ -614,7 +614,7 @@ export default function ModuleQuizPage() {
                   
                   {quizSettings.showAnswers && currentQuestion.correctAnswers && (
                     <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="text-sm font-medium text-green-800 mb-1">Đáp án đúng:</div>
+                      <div className="text-sm font-medium text-green-800 mb-1">Correct answer:</div>
                       <div className="text-sm text-green-700">
                         {JSON.stringify(currentQuestion.correctAnswers)}
                       </div>
@@ -632,7 +632,7 @@ export default function ModuleQuizPage() {
                 disabled={currentQuestionIndex === 0}
                 className="whitespace-nowrap min-w-fit"
               >
-                ← Câu trước
+                ← Previous
               </Button>
               
               <div className="flex gap-2">
@@ -641,14 +641,14 @@ export default function ModuleQuizPage() {
                     onClick={nextQuestion}
                     className="whitespace-nowrap min-w-fit"
                   >
-                    Câu tiếp →
+                    Next →
                   </Button>
                 ) : (
                   <Button 
                     onClick={handleSubmit} 
                     className="bg-green-600 hover:bg-green-700 whitespace-nowrap min-w-fit"
                   >
-                    Nộp bài
+                    Submit
                   </Button>
                 )}
               </div>
@@ -660,7 +660,7 @@ export default function ModuleQuizPage() {
             <div className="sticky top-8">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Loại câu hỏi</CardTitle>
+                  <CardTitle className="text-lg">Question types</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm">

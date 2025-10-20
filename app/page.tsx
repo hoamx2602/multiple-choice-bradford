@@ -1,127 +1,96 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AuthSignInButton } from "@/components/auth/sign-in-button"
-import { AuthSignUpButton } from "@/components/auth/sign-up-button"
 import Link from "next/link"
 
 export default function Home() {
-  const { isSignedIn, isLoaded } = useUser()
+  const [modules, setModules] = useState<Array<{
+    id: string
+    title: string
+    description: string | null
+    isPublic: boolean
+    createdAt: string
+    _count: { questions: number }
+  }>>([])
+  const [loadingModules, setLoadingModules] = useState(true)
 
-  if (!isLoaded) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    )
-  }
+  useEffect(() => {
+    const fetchModules = async () => {
+      try {
+        setLoadingModules(true)
+        const params = new URLSearchParams({ page: "1", limit: "100" })
+        const res = await fetch(`/api/modules?${params.toString()}`)
+        if (res.ok) {
+          const data = await res.json()
+          setModules(Array.isArray(data.items) ? data.items : [])
+        }
+      } catch (e) {
+        console.error("Failed to fetch modules", e)
+      } finally {
+        setLoadingModules(false)
+      }
+    }
+    fetchModules()
+  }, [])
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">
-            Multiple Choice Quiz App
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Tạo và tham gia các bài quiz trắc nghiệm một cách dễ dàng
-          </p>
-          {!isSignedIn && (
-            <div className="flex justify-center space-x-4 mb-8">
-              <AuthSignInButton />
-              <AuthSignUpButton />
+      <div className="max-w-6xl mx-auto">
+        <div className="mt-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold">Modules</h2>
+            <Button asChild variant="outline">
+              <Link href="/modules">View all</Link>
+            </Button>
+          </div>
+
+          {loadingModules ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : modules.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No modules available yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {modules.map((m) => (
+                <Card key={m.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="line-clamp-2 mb-2">{m.title}</CardTitle>
+                        <CardDescription className="line-clamp-3">
+                          {m.description || "No description"}
+                        </CardDescription>
+                      </div>
+                      {m.isPublic && (
+                        <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Public</span>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>{m._count?.questions ?? 0} questions</span>
+                        <span>{new Date(m.createdAt).toLocaleDateString('en-US')}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button asChild className="flex-1">
+                          <Link href={`/modules/${m.id}`}>View details</Link>
+                        </Button>
+                        <Button asChild variant="outline">
+                          <Link href={`/modules/${m.id}/quiz`}>Take quiz</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tạo Quiz</CardTitle>
-              <CardDescription>
-                Tạo bài quiz mới với các câu hỏi trắc nghiệm
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isSignedIn ? (
-                <Button asChild className="w-full">
-                  <Link href="/quiz/create">Bắt đầu tạo</Link>
-                </Button>
-              ) : (
-                <AuthSignInButton />
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Danh sách Quiz</CardTitle>
-              <CardDescription>
-                Xem tất cả các bài quiz có sẵn
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isSignedIn ? (
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/quiz">Xem danh sách</Link>
-                </Button>
-              ) : (
-                <AuthSignInButton />
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Thống kê</CardTitle>
-              <CardDescription>
-                Xem thống kê và kết quả của bạn
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isSignedIn ? (
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/stats">Xem thống kê</Link>
-                </Button>
-              ) : (
-                <AuthSignInButton />
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-4">Tính năng chính</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-            <div className="space-y-2">
-              <h3 className="font-medium">✨ Giao diện hiện đại</h3>
-              <p className="text-sm text-muted-foreground">
-                Sử dụng shadcn/ui và Tailwind CSS cho trải nghiệm người dùng tốt nhất
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-medium">📊 Quản lý dữ liệu</h3>
-              <p className="text-sm text-muted-foreground">
-                Prisma ORM với MongoDB để lưu trữ và quản lý dữ liệu hiệu quả
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-medium">⚡ Hiệu suất cao</h3>
-              <p className="text-sm text-muted-foreground">
-                Next.js App Router với Server Components cho tốc độ tối ưu
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-medium">📱 Responsive</h3>
-              <p className="text-sm text-muted-foreground">
-                Thiết kế responsive hoạt động tốt trên mọi thiết bị
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </main>

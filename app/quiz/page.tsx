@@ -83,9 +83,9 @@ export default function QuizListPage() {
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-3xl font-bold mb-4">Cần đăng nhập</h1>
+          <h1 className="text-3xl font-bold mb-4">Sign-in required</h1>
           <p className="text-muted-foreground mb-8">
-            Bạn cần đăng nhập để xem danh sách quiz
+            You need to sign in to view the quiz list
           </p>
           <AuthSignInButton />
         </div>
@@ -109,12 +109,12 @@ export default function QuizListPage() {
       return (
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-3xl font-bold mb-4">Không tìm thấy quiz</h1>
+            <h1 className="text-3xl font-bold mb-4">Quiz not found</h1>
             <p className="text-muted-foreground mb-8">
-              Module này chưa có câu hỏi nào để làm quiz.
+              This module has no questions available for a quiz.
             </p>
             <Button asChild>
-              <Link href="/modules">Quay lại danh sách modules</Link>
+              <Link href="/modules">Back to modules list</Link>
             </Button>
           </div>
         </main>
@@ -128,15 +128,15 @@ export default function QuizListPage() {
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-4">
               <Button variant="ghost" asChild>
-                <Link href={`/modules/${module.id}`}>← Quay lại module</Link>
+                <Link href={`/modules/${module.id}`}>← Back to module</Link>
               </Button>
             </div>
             <h1 className="text-3xl font-bold mb-2">{module.title}</h1>
             <p className="text-muted-foreground text-lg">
-              {module.description || 'Làm quiz để kiểm tra kiến thức của bạn'}
+              {module.description || 'Take a quiz to test your knowledge'}
             </p>
             <div className="mt-4 text-sm text-muted-foreground">
-              {questions.length} câu hỏi • Tạo lúc {new Date(module.createdAt).toLocaleDateString('vi-VN')}
+              {questions.length} questions • Created {new Date(module.createdAt).toLocaleDateString('en-US')}
             </div>
           </div>
 
@@ -144,20 +144,20 @@ export default function QuizListPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle>Quiz cơ bản</CardTitle>
+                <CardTitle>Basic quiz</CardTitle>
                 <CardDescription>
-                  Làm tất cả {questions.length} câu hỏi theo thứ tự
+                  Answer all {questions.length} questions in order
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-sm text-muted-foreground">
-                    • Không giới hạn thời gian<br/>
-                    • Có thể quay lại câu trước<br/>
-                    • Hiển thị kết quả ngay
+                    • No time limit<br/>
+                    • Can go back to previous question<br/>
+                    • Show results immediately
                   </div>
                   <Button asChild className="w-full">
-                    <Link href={`/modules/${module.id}/quiz`}>Bắt đầu làm</Link>
+                    <Link href={`/modules/${module.id}/quiz`}>Start</Link>
                   </Button>
                 </div>
               </CardContent>
@@ -165,20 +165,20 @@ export default function QuizListPage() {
 
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle>Quiz có thời gian</CardTitle>
+                <CardTitle>Timed quiz</CardTitle>
                 <CardDescription>
-                  Làm bài với giới hạn thời gian
+                  Take the quiz with a time limit
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-sm text-muted-foreground">
-                    • 30 phút làm bài<br/>
-                    • Tự động nộp khi hết giờ<br/>
-                    • Áp lực thời gian
+                    • 30 minutes<br/>
+                    • Auto-submit when time is up<br/>
+                    • Time pressure
                   </div>
                   <Button asChild variant="outline" className="w-full">
-                    <Link href={`/modules/${module.id}/quiz?timed=true`}>Bắt đầu có thời gian</Link>
+                    <Link href={`/modules/${module.id}/quiz?timed=true`}>Start timed</Link>
                   </Button>
                 </div>
               </CardContent>
@@ -186,20 +186,20 @@ export default function QuizListPage() {
 
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle>Xem trước câu hỏi</CardTitle>
+                <CardTitle>Preview questions</CardTitle>
                 <CardDescription>
-                  Xem tất cả câu hỏi trước khi làm
+                  View all questions before taking the quiz
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-sm text-muted-foreground">
-                    • Xem tất cả câu hỏi<br/>
-                    • Không cần trả lời<br/>
-                    • Chuẩn bị trước khi thi
+                    • View all questions<br/>
+                    • No need to answer<br/>
+                    • Prepare before testing
                   </div>
                   <Button asChild variant="outline" className="w-full">
-                    <Link href={`/modules/${module.id}`}>Xem trước</Link>
+                    <Link href={`/modules/${module.id}`}>Preview</Link>
                   </Button>
                 </div>
               </CardContent>
@@ -216,23 +216,23 @@ export default function QuizListPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Danh sách Quiz</h1>
+            <h1 className="text-3xl font-bold">Quiz list</h1>
             <p className="text-muted-foreground mt-2">
-              Chọn một bài quiz để bắt đầu thử thách
+              Choose a quiz to start the challenge
             </p>
           </div>
           <Button asChild>
-            <Link href="/quiz/create">Tạo Quiz mới</Link>
+            <Link href="/quiz/create">Create new Quiz</Link>
           </Button>
         </div>
 
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium mb-2">Chọn module để làm quiz</h3>
+          <h3 className="text-lg font-medium mb-2">Choose a module to take a quiz</h3>
           <p className="text-muted-foreground mb-4">
-            Để làm quiz, hãy chọn một module từ danh sách modules
+            To take a quiz, select a module from the list of modules
           </p>
           <Button asChild>
-            <Link href="/modules">Xem danh sách modules</Link>
+            <Link href="/modules">View modules list</Link>
           </Button>
         </div>
       </div>

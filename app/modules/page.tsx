@@ -86,9 +86,9 @@ export default function ModulesPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Tất cả Modules</h1>
+          <h1 className="text-3xl font-bold mb-2">All Modules</h1>
           <p className="text-muted-foreground">
-            Khám phá các bộ sưu tập câu hỏi được tạo bởi cộng đồng
+            Explore question collections created by the community
           </p>
         </div>
 
@@ -96,12 +96,12 @@ export default function ModulesPage() {
         <div className="mb-8 space-y-4">
           <form onSubmit={handleSearch} className="flex gap-4">
             <Input
-              placeholder="Tìm kiếm modules..."
+              placeholder="Search modules..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="max-w-md"
             />
-            <Button type="submit">Tìm kiếm</Button>
+            <Button type="submit">Search</Button>
           </form>
           
           <div className="flex items-center gap-4">
@@ -112,7 +112,7 @@ export default function ModulesPage() {
                 onChange={handlePublicToggle}
                 className="rounded"
               />
-              <span className="text-sm">Chỉ hiển thị modules công khai</span>
+              <span className="text-sm">Show public modules only</span>
             </label>
           </div>
         </div>
@@ -129,12 +129,12 @@ export default function ModulesPage() {
           <>
             {modules.length === 0 ? (
               <div className="text-center py-12">
-                <h3 className="text-lg font-medium mb-2">Không tìm thấy modules</h3>
+                <h3 className="text-lg font-medium mb-2">No modules found</h3>
                 <p className="text-muted-foreground mb-4">
-                  {searchQuery ? 'Thử tìm kiếm với từ khóa khác' : 'Chưa có modules nào được tạo'}
+                  {searchQuery ? 'Try searching with a different keyword' : 'No modules created yet'}
                 </p>
                 <Button asChild>
-                  <Link href="/quiz/create">Tạo module đầu tiên</Link>
+                  <Link href="/quiz/create">Create your first module</Link>
                 </Button>
               </div>
             ) : (
@@ -148,12 +148,12 @@ export default function ModulesPage() {
                             {module.title}
                           </CardTitle>
                           <CardDescription className="line-clamp-3">
-                            {module.description || 'Không có mô tả'}
+                            {module.description || 'No description'}
                           </CardDescription>
                         </div>
                         {module.isPublic && (
                           <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                            Công khai
+                            Public
                           </span>
                         )}
                       </div>
@@ -161,17 +161,17 @@ export default function ModulesPage() {
                     <CardContent>
                       <div className="space-y-4">
                         <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>{module._count.questions} câu hỏi</span>
+                          <span>{module._count.questions} questions</span>
                           <span>
-                            {new Date(module.createdAt).toLocaleDateString('vi-VN')}
+                            {new Date(module.createdAt).toLocaleDateString('en-US')}
                           </span>
                         </div>
                         <div className="flex gap-2">
                           <Button asChild className="flex-1">
-                            <Link href={`/modules/${module.id}`}>Xem chi tiết</Link>
+                            <Link href={`/modules/${module.id}`}>View details</Link>
                           </Button>
                           <Button variant="outline" size="sm">
-                            Làm quiz
+                            Take quiz
                           </Button>
                         </div>
                       </div>
@@ -190,7 +190,7 @@ export default function ModulesPage() {
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page <= 1}
                   >
-                    Trước
+                    Previous
                   </Button>
                   
                   <div className="flex items-center space-x-1">
@@ -214,7 +214,7 @@ export default function ModulesPage() {
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={pagination.page >= pagination.pages}
                   >
-                    Sau
+                    Next
                   </Button>
                 </div>
               </div>
@@ -222,7 +222,7 @@ export default function ModulesPage() {
 
             {/* Stats */}
             <div className="mt-8 text-center text-sm text-muted-foreground">
-              Hiển thị {modules.length} trong tổng số {pagination.total} modules
+              Showing {modules.length} of {pagination.total} modules
             </div>
           </>
         )}

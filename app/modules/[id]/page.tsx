@@ -247,12 +247,12 @@ export default function ModuleDetailPage() {
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Module không tồn tại</h1>
+          <h1 className="text-2xl font-bold mb-4">Module not found</h1>
           <p className="text-muted-foreground mb-4">
-            Module bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.
+            The module you are looking for does not exist or has been deleted.
           </p>
           <Button asChild>
-            <Link href="/modules">Quay lại danh sách</Link>
+            <Link href="/modules">Back to list</Link>
           </Button>
         </div>
       </main>
@@ -268,7 +268,7 @@ export default function ModuleDetailPage() {
         {/* Back button */}
         <div className="mb-6">
           <Button variant="ghost" asChild>
-            <Link href="/modules">← Quay lại danh sách modules</Link>
+            <Link href="/modules">← Back to modules</Link>
           </Button>
         </div>
 
@@ -279,21 +279,21 @@ export default function ModuleDetailPage() {
               <div className="flex-1">
                 <CardTitle className="text-3xl mb-2">{module.title}</CardTitle>
                 <CardDescription className="text-lg">
-                  {module.description || 'Không có mô tả'}
+                  {module.description || 'No description'}
                 </CardDescription>
               </div>
               {module.isPublic && (
                 <span className="ml-4 px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">
-                  Công khai
+                  Public
                 </span>
               )}
             </div>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>{module._count.questions} câu hỏi</span>
+              <span>{module._count.questions} questions</span>
               <span>
-                Tạo lúc: {new Date(module.createdAt).toLocaleDateString('vi-VN', {
+                Created at: {new Date(module.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
@@ -310,14 +310,14 @@ export default function ModuleDetailPage() {
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             <div className="flex-1 max-w-md">
               <Input
-                placeholder="Tìm kiếm câu hỏi..."
+                placeholder="Search questions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
               />
             </div>
             <Button size="lg" asChild className="px-8 py-3 text-lg">
-              <Link href={`/modules/${module.id}/quiz`}>Làm quiz</Link>
+              <Link href={`/modules/${module.id}/quiz`}>Take quiz</Link>
             </Button>
           </div>
 
@@ -325,7 +325,7 @@ export default function ModuleDetailPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold">
-                Câu hỏi trong module ({totalQuestions})
+                Questions in module ({totalQuestions})
               </h2>
             </div>
 
@@ -333,19 +333,19 @@ export default function ModuleDetailPage() {
               <Card>
                 <CardContent className="text-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                  <p className="mt-2 text-muted-foreground">Đang tải...</p>
+                  <p className="mt-2 text-muted-foreground">Loading...</p>
                 </CardContent>
               </Card>
             ) : questions.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <h3 className="text-lg font-medium mb-2">
-                    {searchQuery ? 'Không tìm thấy câu hỏi nào' : 'Chưa có câu hỏi'}
+                    {searchQuery ? 'No questions found' : 'No questions yet'}
                   </h3>
                   <p className="text-muted-foreground">
                     {searchQuery 
-                      ? 'Thử tìm kiếm với từ khóa khác' 
-                      : 'Module này chưa có câu hỏi nào.'
+                      ? 'Try searching with a different keyword' 
+                      : 'This module has no questions yet.'
                     }
                   </p>
                 </CardContent>
@@ -357,7 +357,7 @@ export default function ModuleDetailPage() {
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-lg">
-                          Câu {index + 1}: {question.type === 'fill_in_the_blank' && Array.isArray(question.correctAnswers)
+                          Q{index + 1}: {question.type === 'fill_in_the_blank' && Array.isArray(question.correctAnswers)
                             ? fillInTheBlankAnswersWithHighlight(question.question, question.correctAnswers)
                             : question.question}
                         </CardTitle>
@@ -375,7 +375,7 @@ export default function ModuleDetailPage() {
                                   ? 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200'
                                   : 'hover:bg-gray-100'
                               }`}
-                              title={showImages[question.id] ? 'Ẩn ảnh' : 'Hiển thị ảnh'}
+                              title={showImages[question.id] ? 'Hide image' : 'Show image'}
                             >
                               {showImages[question.id] ? <ImageOff className="h-4 w-4" /> : <Image className="h-4 w-4" />}
                             </Button>
@@ -402,7 +402,7 @@ export default function ModuleDetailPage() {
                         
                         {/* Answers */}
                         <div>
-                          <h4 className="font-medium text-sm mb-2">Các lựa chọn:</h4>
+                          <h4 className="font-medium text-sm mb-2">Options:</h4>
                           {renderAnswers(question)}
                         </div>
                         
@@ -426,7 +426,7 @@ export default function ModuleDetailPage() {
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
-                  Trước
+                  Previous
                 </Button>
                 
                 <div className="flex items-center space-x-1">
@@ -462,7 +462,7 @@ export default function ModuleDetailPage() {
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
-                  Sau
+                  Next
                 </Button>
               </div>
             )}
@@ -470,8 +470,8 @@ export default function ModuleDetailPage() {
             {/* Pagination Info */}
             {totalQuestions > 0 && (
               <div className="text-center text-sm text-muted-foreground mt-4">
-                Hiển thị {((currentPage - 1) * 100) + 1} - {Math.min(currentPage * 100, totalQuestions)} 
-                trong tổng số {totalQuestions} câu hỏi
+                Showing {((currentPage - 1) * 100) + 1} - {Math.min(currentPage * 100, totalQuestions)} 
+                of {totalQuestions} questions
               </div>
             )}
           </div>
@@ -483,7 +483,7 @@ export default function ModuleDetailPage() {
             <div className="sticky top-8">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Loại câu hỏi</CardTitle>
+                  <CardTitle className="text-lg">Question types</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm">
