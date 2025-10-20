@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -41,6 +41,7 @@ interface QuizSettings {
 export default function ModuleQuizPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [module, setModule] = useState<Module | null>(null)
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -89,8 +90,13 @@ export default function ModuleQuizPage() {
       const moduleData = await moduleResponse.json()
       setModule(moduleData)
 
-      // Fetch questions
-      const questionsResponse = await fetch(`/api/questions?moduleId=${moduleId}`)
+      // Fetch questions with optional limit
+      const limitParam = parseInt(searchParams.get('limit') || '0', 10)
+      const qs = new URLSearchParams({ moduleId })
+      if (!isNaN(limitParam) && limitParam > 0) {
+        qs.set('limit', Math.min(limitParam, 100).toString())
+      }
+      const questionsResponse = await fetch(`/api/questions?${qs.toString()}`)
       if (questionsResponse.ok) {
         const questionsData = await questionsResponse.json()
         setQuestions(questionsData.items || [])
@@ -186,7 +192,8 @@ export default function ModuleQuizPage() {
       case 'multiple_choice':
         return (
           <RadioGroup
-            value={currentAnswer}
+            key={question.id}
+            value={currentAnswer ?? ''}
             onValueChange={(value) => handleAnswerChange(question.id, value)}
           >
             {Array.isArray(question.answers) && question.answers.map((answer: string, index: number) => (
@@ -231,7 +238,7 @@ export default function ModuleQuizPage() {
             type="number"
             value={currentAnswer || ''}
             onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-            placeholder="Nhập số..."
+            placeholder="Enter a number..."
           />
         )
 
@@ -254,7 +261,7 @@ export default function ModuleQuizPage() {
           <Input
             value={currentAnswer || ''}
             onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-            placeholder="Điền vào chỗ trống..."
+            placeholder="Fill in the blank..."
           />
         )
 
@@ -317,7 +324,8 @@ export default function ModuleQuizPage() {
         if (Array.isArray(question.answers)) {
           return (
             <RadioGroup
-              value={currentAnswer}
+              key={question.id}
+              value={currentAnswer ?? ''}
               onValueChange={(value) => handleAnswerChange(question.id, value)}
             >
               {question.answers.map((answer: string, index: number) => (
@@ -334,7 +342,7 @@ export default function ModuleQuizPage() {
         
         return (
           <div className="text-muted-foreground">
-            Loại câu hỏi không được hỗ trợ: {question.type}
+            Unsupported question type: {question.type}
             <br />
             Answers: {JSON.stringify(question.answers)}
           </div>
@@ -581,7 +589,7 @@ export default function ModuleQuizPage() {
                             ? 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200' 
                             : 'hover:bg-gray-100'
                         }`}
-                        title={markedQuestions.has(currentQuestion.id) ? 'Bỏ đánh dấu' : 'Đánh dấu'}
+                        title={markedQuestions.has(currentQuestion.id) ? 'Unmark' : 'Mark'}
                       >
                         <Bookmark 
                           className={`h-4 w-4 ${

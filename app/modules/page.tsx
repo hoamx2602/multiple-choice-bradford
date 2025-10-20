@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 interface Module {
   id: string
@@ -29,6 +30,7 @@ interface ModulesResponse {
 }
 
 export default function ModulesPage() {
+  const router = useRouter()
   const [modules, setModules] = useState<Module[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
@@ -170,7 +172,20 @@ export default function ModulesPage() {
                           <Button asChild className="flex-1">
                             <Link href={`/modules/${module.id}`}>View details</Link>
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              const input = window.prompt('How many questions? (e.g., 20)', '20')
+                              if (input === null) return
+                              const parsed = parseInt(input, 10)
+                              const clamped = isNaN(parsed) || parsed <= 0 ? undefined : Math.min(parsed, 100)
+                              const href = clamped
+                                ? `/modules/${module.id}/quiz?limit=${clamped}`
+                                : `/modules/${module.id}/quiz`
+                              router.push(href)
+                            }}
+                          >
                             Take quiz
                           </Button>
                         </div>
