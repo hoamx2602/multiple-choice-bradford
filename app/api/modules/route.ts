@@ -85,18 +85,43 @@ export async function GET(req: Request) {
           isPublic: true,
           createdAt: true,
           updatedAt: true,
-          _count: {
-            select: {
-              questions: true
-            }
-          }
         },
       }),
       prisma.module.count({ where }),
     ])
 
+    const moduleIds = items.map((item) => item.id)
+
+    const questionCounts = moduleIds.length
+      ? await prisma.question.groupBy({
+          by: ['moduleId'],
+          where: {
+            moduleId: {
+              in: moduleIds,
+            },
+          },
+          _count: {
+            _all: true,
+          },
+        })
+      : []
+
+    const countMap = questionCounts.reduce<Record<string, number>>((acc, entry) => {
+      if (entry.moduleId) {
+        acc[entry.moduleId] = entry._count._all
+      }
+      return acc
+    }, {})
+
+    const itemsWithCounts = items.map((item) => ({
+      ...item,
+      _count: {
+        questions: countMap[item.id] ?? 0,
+      },
+    }))
+
     return NextResponse.json({
-      items,
+      items: itemsWithCounts,
       pagination: {
         page,
         limit,
