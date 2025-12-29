@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
 import { QuestionType } from '@prisma/client'
 
+// Force dynamic rendering to avoid response caching issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 type CreateQuestionBody = {
   type: QuestionType
   question: string
@@ -102,13 +106,16 @@ export async function GET(req: Request) {
 
     const where: any = {}
     if (type) where.type = type
-    if (q) where.question = { contains: q }
+    // Note: contains in Prisma uses case-sensitive regex, but it's faster with index
+    // For better performance, consider adding text index on question field
+    if (q) where.question = { contains: q, mode: 'insensitive' }
     if (moduleId) where.moduleId = moduleId
 
+    // Run queries in parallel for better performance
     const [items, total] = await Promise.all([
       prisma.question.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'desc' }, // Use compound index [moduleId, createdAt]
         skip: (page - 1) * limit,
         take: limit,
         select: {
@@ -126,7 +133,7 @@ export async function GET(req: Request) {
       prisma.question.count({ where }),
     ])
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       items,
       pagination: {
         page,
@@ -135,6 +142,8 @@ export async function GET(req: Request) {
         pages: Math.ceil(total / limit),
       },
     })
+
+    return response
   } catch (err) {
     console.error('List questions error:', err)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

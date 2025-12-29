@@ -29,67 +29,78 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations: User creates or owns quizzes
-  quizzes   Quiz[]
+  quizzes  Quiz[]
   // Back-relation: User's quiz attempts
-  attempts  QuizAttempt[]
+  attempts QuizAttempt[]
   // User creates modules
 
   @@map("users")
 }
 
 model Module {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
-  isPublic    Boolean  @default(true)
-  
-  // Relations
-  questions   Question[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isPublic    Boolean @default(true)
 
+  // Relations
+  questions Question[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes for query optimization
+  @@index([isPublic]) // For filtering public modules
+  @@index([createdAt]) // For ordering by creation date
   @@map("modules")
 }
 
 model Question {
-  id            String       @id @default(auto()) @map("_id") @db.ObjectId
-  uniqueId      String       @unique  // ID từ extension
-  hash          String       @unique  // MD5 của question để check duplicate
-  type          QuestionType // Sử dụng enum
-  question      String
-  answers       Json     // array<string> hoặc object tùy type
-  correctAnswers Json    // object tùy type hoặc null
-  imageUrl      String?  // S3 URL for question image
-  createdBy     String?  // Clerk userId (optional, ai tạo câu hỏi)
-  moduleId      String?  @db.ObjectId // Link to module
-  metadata      Json     // { timestamp, edited_timestamp, frame, source_url }
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  uniqueId       String       @unique // ID từ extension
+  hash           String       @unique // MD5 của question để check duplicate
+  type           QuestionType // Sử dụng enum
+  question       String
+  answers        Json // array<string> hoặc object tùy type
+  correctAnswers Json // object tùy type hoặc null
+  imageUrl       String? // S3 URL for question image
+  createdBy      String? // Clerk userId (optional, ai tạo câu hỏi)
+  moduleId       String?      @db.ObjectId // Link to module
+  metadata       Json // { timestamp, edited_timestamp, frame, source_url }
 
   // Relations: Question thuộc về modules, quizzes, và có attempts
-  module        Module?      @relation(fields: [moduleId], references: [id], onDelete: SetNull)
-  quizQuestions QuizQuestion[]  // Intermediate table nếu many-to-many
+  module        Module?        @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  quizQuestions QuizQuestion[] // Intermediate table nếu many-to-many
   attempts      QuizAttempt[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  // Indexes for query optimization
+  @@index([moduleId]) // For filtering and counting questions by module
+  @@index([moduleId, createdAt]) // Compound index for filtering by module + sorting by date (most common query)
+  @@index([type]) // For filtering by question type
+  @@index([createdAt]) // For ordering by creation date
   @@map("questions")
 }
 
 model Quiz {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String   // Tên quiz
-  description String?  // Mô tả
-  userId      String   // Clerk userId (owner)
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  title       String // Tên quiz
+  description String? // Mô tả
+  userId      String // Clerk userId (owner)
 
   // Relations
-  user        User     @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
-  questions   QuizQuestion[]  // Many-to-many với Question
-  attempts    QuizAttempt[]   // Attempts cho quiz này
+  user      User           @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
+  questions QuizQuestion[] // Many-to-many với Question
+  attempts  QuizAttempt[] // Attempts cho quiz này
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  // Indexes for query optimization
+  @@index([userId]) // For filtering quizzes by user
+  @@index([createdAt]) // For ordering by creation date
   @@map("quizzes")
 }
 
@@ -98,33 +109,38 @@ model QuizQuestion {
   id         String @id @default(auto()) @map("_id") @db.ObjectId
   quizId     String @db.ObjectId
   questionId String @db.ObjectId
-  order      Int?  // Thứ tự câu hỏi trong quiz
+  order      Int? // Thứ tự câu hỏi trong quiz
 
   // Relations
-  quiz       Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  question   Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  quiz     Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([quizId, questionId])
+  @@index([quizId]) // For filtering questions by quiz
+  @@index([questionId]) // For filtering quizzes by question
   @@map("quiz_questions")
 }
 
 model QuizAttempt {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String   // Clerk userId (authenticated)
-  quizId        String?  @db.ObjectId  // Optional: Nếu attempt cho toàn quiz
-  questionId    String   @db.ObjectId  // Reference Question.id
-  userAnswers   Json     // Input của user (tương tự correctAnswers)
-  score         Float?   // Tự động tính: 1.0 nếu đúng, 0.0 nếu sai (hoặc %)
-  completedAt   DateTime?
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String // Clerk userId (authenticated)
+  quizId      String?   @db.ObjectId // Optional: Nếu attempt cho toàn quiz
+  questionId  String    @db.ObjectId // Reference Question.id
+  userAnswers Json // Input của user (tương tự correctAnswers)
+  score       Float? // Tự động tính: 1.0 nếu đúng, 0.0 nếu sai (hoặc %)
+  completedAt DateTime?
 
   // Relations
-  user          User?    @relation(fields: [userId], references: [clerkId])  // Link to User via clerkId
-  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  quiz          Quiz?    @relation(fields: [quizId], references: [id], onDelete: SetNull)
+  user     User?    @relation(fields: [userId], references: [clerkId]) // Link to User via clerkId
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  quiz     Quiz?    @relation(fields: [quizId], references: [id], onDelete: SetNull)
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([userId, questionId])  // User chỉ attempt 1 lần/question (có thể chỉnh)
+  @@unique([userId, questionId]) // User chỉ attempt 1 lần/question (có thể chỉnh)
+  @@index([userId]) // For filtering attempts by user
+  @@index([questionId]) // For filtering attempts by question
+  @@index([quizId]) // For filtering attempts by quiz
   @@map("quiz_attempts")
 }

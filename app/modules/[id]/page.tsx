@@ -60,8 +60,8 @@ export default function ModuleDetailPage() {
       const moduleData = await moduleResponse.json()
       setModule(moduleData)
 
-      // Fetch questions in this module with pagination
-      await fetchQuestions(moduleId, 1, "")
+      // Don't fetch questions here - let the search useEffect handle it
+      // This prevents duplicate calls
     } catch (error) {
       console.error('Error fetching module details:', error)
     } finally {
@@ -99,12 +99,15 @@ export default function ModuleDetailPage() {
   }
 
   // Search functionality with debounce
+  // This handles both initial load and search queries
   useEffect(() => {
+    if (!params.id) return
+    
+    // For search queries, use debounce
+    // For empty search (initial load), also use small delay to avoid race condition
     const timeoutId = setTimeout(() => {
-      if (params.id) {
-        fetchQuestions(params.id as string, 1, searchQuery)
-      }
-    }, 500) // 500ms debounce
+      fetchQuestions(params.id as string, 1, searchQuery)
+    }, searchQuery === "" ? 0 : 500) // No delay for initial load, 500ms debounce for search
 
     return () => clearTimeout(timeoutId)
   }, [searchQuery, params.id])
