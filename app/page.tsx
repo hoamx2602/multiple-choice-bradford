@@ -121,18 +121,20 @@ export default function Home() {
       case 'multiple_response':
         return (
           <div className="space-y-2">
-            {Array.isArray(question.answers) && question.answers.map((answer: string, idx: number) => (
-              <div key={idx} className="flex items-center space-x-2">
-                <span className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-sm">
-                  {String.fromCharCode(65 + idx)}
-                </span>
-                <span className="text-sm">{answer}</span>
-                {question.correctAnswers && Array.isArray(question.correctAnswers) && 
-                 question.correctAnswers.includes(idx) && (
-                  <span className="text-green-600 font-medium">✓ Đúng</span>
-                )}
-              </div>
-            ))}
+            {Array.isArray(question.answers) && question.answers.map((answer: string, idx: number) => {
+              const isCorrect = Array.isArray(question.correctAnswers) && question.correctAnswers.includes(idx)
+              return (
+                <div key={idx} className="flex items-center space-x-2">
+                  <span className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-sm">
+                    {String.fromCharCode(65 + idx)}
+                  </span>
+                  <span className="text-sm">{answer}</span>
+                  {isCorrect && (
+                    <span className="text-green-600 font-medium">✓ Đúng</span>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )
 
@@ -151,12 +153,15 @@ export default function Home() {
           <div className="space-y-2">
             <div className="text-sm">
               <span className="font-medium">Đáp án: </span>
-              {Array.isArray(question.correctAnswers) && question.correctAnswers.map((answer: string, idx: number) => (
-                <span key={idx} className="text-green-600">
-                  {answer}
-                  {idx < question.correctAnswers.length - 1 && ', '}
-                </span>
-              ))}
+              {Array.isArray(question.correctAnswers) && (question.correctAnswers as string[]).map((answer: string, idx: number) => {
+                const answers = question.correctAnswers as string[]
+                return (
+                  <span key={idx} className="text-green-600">
+                    {answer}
+                    {idx < answers.length - 1 && ', '}
+                  </span>
+                )
+              })}
             </div>
           </div>
         )
@@ -191,12 +196,15 @@ export default function Home() {
           <div className="space-y-2">
             <div className="text-sm">
               <span className="font-medium">Thứ tự đúng: </span>
-              {Array.isArray(question.correctAnswers) && question.correctAnswers.map((order: number, idx: number) => (
-                <span key={idx} className="text-green-600">
-                  {order + 1}
-                  {idx < question.correctAnswers.length - 1 && ', '}
-                </span>
-              ))}
+              {Array.isArray(question.correctAnswers) && (question.correctAnswers as number[]).map((order: number, idx: number) => {
+                const orders = question.correctAnswers as number[]
+                return (
+                  <span key={idx} className="text-green-600">
+                    {order + 1}
+                    {idx < orders.length - 1 && ', '}
+                  </span>
+                )
+              })}
             </div>
           </div>
         )
