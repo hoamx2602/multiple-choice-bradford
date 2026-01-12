@@ -126,8 +126,15 @@ export async function GET(req: Request) {
           answers: true,
           correctAnswers: true,
           imageUrl: true,
+          moduleId: true,
           createdAt: true,
           updatedAt: true,
+          module: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
         },
       }),
       prisma.question.count({ where }),
